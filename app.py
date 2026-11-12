@@ -63,13 +63,16 @@ def run_yolo(core, image, device):
         dets.append({"box": box.tolist(), "score": score.item(), "label": int(label.item()) + 1})
     return dets
 
-def draw_boxes(image, detections, color):
+def draw_boxes(image, detections, base_color):
     img = image.copy()
     draw = ImageDraw.Draw(img)
     for d in detections:
         x1, y1, x2, y2 = d["box"]
-        draw.rectangle([x1, y1, x2, y2], outline=color, width=4)
         label = "smoke" if d["label"] == 1 else "fire"
+        
+        color = "red" if label == "fire" else "orange"
+        
+        draw.rectangle([x1, y1, x2, y2], outline=color, width=4)
         draw.text((x1 + 5, y1 + 5), f"{label} {d['score']:.2f}", fill=color)
     return img
 
@@ -91,7 +94,6 @@ if uploaded_file is not None:
         frcnn_dets = run_frcnn(frcnn, image, device)
     with col2:
         st.image(draw_boxes(image, frcnn_dets, "red"), caption=f"Faster R-CNN ({len(frcnn_dets)} boxes)", use_container_width=True)
-    
     with st.spinner("Running YOLOv8s..."):
         yolo_dets = run_yolo(yolo_core, image, device)
     with col3:
